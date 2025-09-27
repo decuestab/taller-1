@@ -20,7 +20,7 @@ st.markdown("Este dashboard analiza automáticamente las ventas y cantidades ven
 # ======================
 @st.cache_data
 def load_data():
-    path = r"C:\Users\anama\Downloads\superstore.csv"  # ruta local
+    path = r"C:\Users\cuest\Downloads\superstore.csv"  # ruta local
     df = pd.read_csv(path, encoding="latin1", sep=";")
     
     # Asegurar que las columnas sean numéricas
@@ -140,3 +140,4 @@ else:
 # =======================================================================
 # cd "C:\Users\anama\Downloads"
 # streamlit run Storrytelling_.py
+
