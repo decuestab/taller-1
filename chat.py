@@ -76,4 +76,69 @@ def predict_intent(user_input):
 # ------------------------------
 # Lógica del Chatbot
 # ------------------------------
-if "s
+if "state" not in st.session_state:
+    st.session_state.state = {"step": 0, "data": {}}
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+def chatbot_logic(user_input):
+    state = st.session_state.state
+    intent = None
+    response = ""
+
+    if state["step"] == 0:
+        intent = predict_intent(user_input)
+        if intent == "iniciar_pqrs":
+            state["step"] = 1
+            response = pqrs_responses["solicitar_nombre"]
+        elif intent == "reportes":
+            response = pqrs_responses["reporte_ventas"]
+        else:
+            response = pqrs_responses.get(intent, pqrs_responses["desconocido"])
+
+    elif state["step"] == 1:
+        state["data"]["nombre"] = user_input
+        state["step"] = 2
+        response = pqrs_responses["solicitar_categoria"].format(nombre=user_input)
+
+    elif state["step"] == 2:
+        state["data"]["categoria"] = user_input
+        state["step"] = 3
+        response = pqrs_responses["solicitar_detalle"]
+
+    elif state["step"] == 3:
+        state["data"]["detalle"] = user_input
+        state["step"] = 0
+        response = pqrs_responses["confirmacion_final"]
+
+    save_interaction(user_input, response)
+
+    if response == pqrs_responses["confirmacion_final"]:
+        print("PQRS recibida y procesada:", state["data"])
+        state["data"] = {}
+
+    return response
+
+# ------------------------------
+# Interfaz Streamlit
+# ------------------------------
+st.title("🤖 Asistente de experiencia de Meeiko")
+st.markdown("Por favor, introduce tu Petición, Queja, Reclamo o Sugerencia.")
+
+# Mostrar historial
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# Entrada del usuario
+if prompt := st.chat_input("Escribe tu mensaje aquí..."):
+    # Mostrar mensaje de usuario
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Respuesta del bot
+    response = chatbot_logic(prompt)
+    st.session_state.messages.append({"role": "assistant", "content": response})
+    with st.chat_message("assistant"):
+        st.markdown(response)
