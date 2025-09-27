@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Sep 27 08:43:03 2025
-
-@author: cuest
+Adaptación del chatbot a Streamlit (sin Gradio)
 """
 
-import gradio as gr
+import streamlit as st
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.neighbors import NearestNeighbors
@@ -47,11 +45,11 @@ pqrs_responses = {
 # ------------------------------
 # Palabras clave y frases de entrenamiento
 # ------------------------------
-# Se mantienen las frases de PQRS
 training_phrases = {
     "saludo": ["hola", "buenas", "qué tal", "hey", "saludos"],
-    "iniciar_pqrs": ["tengo una queja", "quiero hacer un reclamo", "tengo una sugerencia", "quiero dejar una opinión", "necesito reportar un problema", "no estoy conforme", "felicitacion"],
-    # Se añade la intención para ventas y reportes
+    "iniciar_pqrs": ["tengo una queja", "quiero hacer un reclamo", "tengo una sugerencia",
+                     "quiero dejar una opinión", "necesito reportar un problema",
+                     "no estoy conforme", "felicitacion"],
     "reportes": ["reporte", "ventas", "informe", "datos", "resultados"],
 }
 
@@ -78,59 +76,4 @@ def predict_intent(user_input):
 # ------------------------------
 # Lógica del Chatbot
 # ------------------------------
-state = {"step": 0, "data": {}}
-
-def chatbot(user_input, history):
-    global state
-    
-    # Lógica para manejar el flujo de PQRS
-    if state["step"] == 0:
-        intent = predict_intent(user_input)
-        
-        if intent == "iniciar_pqrs":
-            state["step"] = 1
-            response = pqrs_responses["solicitar_nombre"]
-        elif intent == "reportes":
-            response = pqrs_responses["reporte_ventas"]
-        else:
-            response = pqrs_responses.get(intent, pqrs_responses["desconocido"])
-    
-    elif state["step"] == 1:
-        state["data"]["nombre"] = user_input
-        state["step"] = 2
-        response = pqrs_responses["solicitar_categoria"].format(nombre=user_input)
-    
-    elif state["step"] == 2:
-        state["data"]["categoria"] = user_input
-        state["step"] = 3
-        response = pqrs_responses["solicitar_detalle"]
-        
-    elif state["step"] == 3:
-        state["data"]["detalle"] = user_input
-        state["step"] = 0
-        response = pqrs_responses["confirmacion_final"]
-        
-    save_interaction(user_input, response)
-    
-    if response == pqrs_responses["confirmacion_final"]:
-        print("PQRS recibida y procesada:", state["data"])
-        state["data"] = {}
-
-    history.append({"role": "assistant", "content": response})
-    return history
-
-# ------------------------------
-# Interfaz Gradio
-# ------------------------------
-with gr.Blocks() as demo:
-    gr.Markdown("## 🤖 Asistente de experiencia de Meeiko")
-    gr.Markdown("Por favor, introduce tu Petición, Queja, Reclamo o Sugerencia.")
-    
-    chatbot_ui = gr.ChatInterface(
-        fn=chatbot,
-        type="messages",
-        title="Asistente de experiencia",
-        description="Estoy listo para conocer tu experciencia en Meeiko."
-    )
-
-demo.launch(share=True, debug=True)
+if "s
